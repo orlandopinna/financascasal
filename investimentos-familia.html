@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f0f0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Investimentos">
+<meta name="description" content="Painel de investimentos familiar">
+<title>Investimentos Família</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #0f0f0f;
+  --bg2: #1a1a1a;
+  --bg3: #222;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #f0f0f0;
+  --text2: #888;
+  --text3: #555;
+  --green: #22c55e;
+  --green-dim: rgba(34,197,94,0.12);
+  --red: #ef4444;
+  --red-dim: rgba(239,68,68,0.12);
+  --blue: #3b82f6;
+  --blue-dim: rgba(59,130,246,0.12);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,0.12);
+  --amber: #f59e0b;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --font: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  min-height: 100dvh;
+  overscroll-behavior: none;
+}
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+.topbar {
+  padding: 20px 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.topbar-title { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+.topbar-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.content { flex: 1; padding: 16px 20px 100px; overflow-y: auto; }
+.nav {
+  position: fixed;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  background: rgba(15,15,15,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  z-index: 100;
+}
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 4px;
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  transition: color .15s;
+  font-family: var(--font);
+}
+.nav-btn.active { color: var(--text); }
+.nav-btn svg { width: 22px; height: 22px; stroke-width: 1.8; }
+.nav-btn span { font-size: 10px; font-weight: 500; }
+.section { display: none; }
+.section.active { display: block; }
+
+/* Cards */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.card-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+.card-value { font-size: 28px; font-weight: 600; letter-spacing: -1px; font-family: var(--mono); }
+.card-sub { font-size: 12px; margin-top: 4px; color: var(--text2); }
+
+/* Metric grid */
+.metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.metric { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; }
+.metric-label { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+.metric-value { font-size: 18px; font-weight: 600; font-family: var(--mono); letter-spacing: -0.5px; }
+.metric-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+.positive { color: var(--green); }
+.negative { color: var(--red); }
+.neutral { color: var(--text2); }
+
+/* Progress bar */
+.progress-wrap { margin-bottom: 12px; }
+.progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.progress-title { font-size: 13px; font-weight: 500; }
+.progress-pct { font-size: 12px; color: var(--text2); font-family: var(--mono); }
+.progress-bar { height: 6px; background: var(--bg3); border-radius: 100px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--green); border-radius: 100px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+.progress-labels { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--text3); font-family: var(--mono); }
+
+/* Charts */
+.chart-container { position: relative; width: 100%; }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text2); }
+.legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+/* Section headers */
+.section-header { font-size: 13px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; margin: 20px 0 10px; }
+
+/* Forms */
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 6px; font-weight: 500; }
+.form-input, .form-select {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color .15s;
+}
+.form-input:focus, .form-select:focus {
+  outline: none;
+  border-color: var(--border2);
+}
+.form-input::placeholder { color: var(--text3); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 20px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text);
+  transition: all .15s;
+  white-space: nowrap;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  background: var(--text);
+  color: var(--bg);
+  border-color: transparent;
+}
+.btn-danger { color: var(--red); border-color: rgba(239,68,68,0.2); }
+.btn-danger:active { background: var(--red-dim); }
+.btn-full { width: 100%; justify-content: center; }
+.btn-sm { padding: 7px 12px; font-size: 13px; }
+
+/* Table */
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+td { padding: 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+
+/* Pills */
+.pill { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 500; }
+.pill-eu { background: var(--green-dim); color: var(--green); }
+.pill-esposa { background: var(--purple-dim); color: var(--purple); }
+
+/* Badge */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; background: var(--bg3); color: var(--text2); }
+
+/* Empty */
+.empty { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 14px; line-height: 1.6; }
+.empty svg { margin: 0 auto 12px; display: block; opacity: .3; }
+
+/* Config list */
+.config-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.config-item:last-child { border-bottom: none; }
+.config-item-name { font-size: 14px; }
+
+/* Row actions */
+.row-actions { display: flex; gap: 6px; }
+
+/* History table color classes */
+.mono { font-family: var(--mono); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Investimentos 💰</div>
+      <div class="topbar-sub" id="topbar-sub">Carregando...</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div id="sec-dashboard" class="section active"></div>
+    <div id="sec-lancamento" class="section"></div>
+    <div id="sec-historico" class="section"></div>
+    <div id="sec-config" class="section"></div>
+  </div>
+
+  <nav class="nav">
+    <button class="nav-btn active" id="nav-dashboard" onclick="switchTab('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Painel</span>
+    </button>
+    <button class="nav-btn" id="nav-lancamento" onclick="switchTab('lancamento')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      <span>Lançar</span>
+    </button>
+    <button class="nav-btn" id="nav-historico" onclick="switchTab('historico')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Histórico</span>
+    </button>
+    <button class="nav-btn" id="nav-config" onclick="switchTab('config')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+      <span>Config</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+const COLORS = ['#3b82f6','#22c55e','#f59e0b','#a78bfa','#ef4444','#06b6d4','#f97316','#84cc16','#ec4899','#6b7280'];
+
+let _charts = {};
+
+function gs() {
+  try { return JSON.parse(localStorage.getItem('invest_v2') || '{}'); } catch(e) { return {}; }
+}
+function ss(s) { localStorage.setItem('invest_v2', JSON.stringify(s)); }
+function getInst() { return gs().instituicoes || ['Nubank','XP','Inter']; }
+function getLanc() { return gs().lancamentos || []; }
+function getMeta() { return parseFloat(gs().meta) || 0; }
+
+function fmtBRL(v) {
+  return new Intl.NumberFormat('pt-BR', {style:'currency',currency:'BRL',minimumFractionDigits:0,maximumFractionDigits:0}).format(v||0);
+}
+function fmtBRLDec(v) {
+  return new Intl.NumberFormat('pt-BR', {style:'currency',currency:'BRL'}).format(v||0);
+}
+function fmtPct(v) {
+  if (!isFinite(v) || v === null) return '—';
+  return (v >= 0 ? '+' : '') + v.toFixed(2) + '%';
+}
+function getMeses() {
+  return [...new Set(getLanc().map(x => x.mes))].sort();
+}
+function totaisPorMes() {
+  const meses = getMeses(), res = {};
+  meses.forEach(m => {
+    const items = getLanc().filter(x => x.mes === m);
+    res[m] = { total: items.reduce((a,b) => a + (b.valor||0), 0), items };
+  });
+  return res;
+}
+function destroyChart(id) {
+  if (_charts[id]) { _charts[id].destroy(); delete _charts[id]; }
+}
+
+function switchTab(name) {
+  ['dashboard','lancamento','historico','config'].forEach(t => {
+    document.getElementById('sec-'+t).classList.toggle('active', t===name);
+    document.getElementById('nav-'+t).classList.toggle('active', t===name);
+  });
+  if (name==='dashboard') renderDashboard();
+  else if (name==='lancamento') renderLancamento();
+  else if (name==='historico') renderHistorico();
+  else if (name==='config') renderConfig();
+}
+
+/* ---- DASHBOARD ---- */
+function renderDashboard() {
+  const div = document.getElementById('sec-dashboard');
+  const meses = getMeses(), tm = totaisPorMes();
+  const sub = document.getElementById('topbar-sub');
+
+  if (meses.length === 0) {
+    sub.textContent = 'Nenhum lançamento';
+    div.innerHTML = `<div class="empty" style="padding-top:60px">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><path d="M18.5 8l-5 5-3-3-4.5 4.5"/></svg>
+      Nenhum dado ainda.<br>Vá em <strong style="color:#888">Lançar</strong> para começar.
+    </div>`;
+    return;
+  }
+
+  const ultimo = meses[meses.length-1];
+  const penult = meses.length > 1 ? meses[meses.length-2] : null;
+  const totalAtual = tm[ultimo]?.total || 0;
+  const totalAnt = penult ? (tm[penult]?.total || 0) : null;
+  const var_ = totalAnt != null ? ((totalAtual - totalAnt) / totalAnt * 100) : null;
+  const primeiro = tm[meses[0]]?.total || 0;
+  const rent = primeiro > 0 ? ((totalAtual - primeiro) / primeiro * 100) : null;
+  const meta = getMeta();
+  const metaPct = meta > 0 ? Math.min(totalAtual / meta * 100, 100) : null;
+
+  const itensUltimo = tm[ultimo]?.items || [];
+  const totalEu = itensUltimo.filter(x=>x.titular==='eu').reduce((a,b)=>a+(b.valor||0),0);
+  const totalEsposa = itensUltimo.filter(x=>x.titular==='esposa').reduce((a,b)=>a+(b.valor||0),0);
+
+  const instData = {};
+  itensUltimo.forEach(i => { instData[i.instituicao] = (instData[i.instituicao]||0) + (i.valor||0); });
+  const instKeys = Object.keys(instData).sort((a,b) => instData[b]-instData[a]);
+
+  const mesesLabels = meses.map(m => { const [a,mo] = m.split('-'); return mo+'/'+a.slice(2); });
+  const totaisArr = meses.map(m => tm[m]?.total || 0);
+
+  sub.textContent = ultimo.split('-').reverse().join('/') + ' · ' + fmtBRL(totalAtual);
+
+  div.innerHTML = `
+    <div style="margin-top:16px"></div>
+
+    <div class="card" style="background:transparent;border:1px solid var(--border2);padding:20px">
+      <div class="card-label">Patrimônio total</div>
+      <div class="card-value">${fmtBRL(totalAtual)}</div>
+      <div class="card-sub">${ultimo.split('-').reverse().join('/')}</div>
+    </div>
+
+    ${metaPct !== null ? `
+    <div class="card" style="padding:14px 16px">
+      <div class="progress-header">
+        <span class="progress-title">Meta patrimonial</span>
+        <span class="progress-pct">${metaPct.toFixed(1)}%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${metaPct.toFixed(1)}%"></div></div>
+      <div class="progress-labels"><span>${fmtBRL(totalAtual)}</span><span>${fmtBRL(meta)}</span></div>
+    </div>` : ''}
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">Variação mensal</div>
+        <div class="metric-value ${var_===null?'neutral':var_>=0?'positive':'negative'}">${var_===null?'—':fmtPct(var_)}</div>
+        <div class="metric-sub">${penult?penult.split('-').reverse().join('/'):'—'}</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Rent. total</div>
+        <div class="metric-value ${rent===null?'neutral':rent>=0?'positive':'negative'}">${rent===null?'—':fmtPct(rent)}</div>
+        <div class="metric-sub">desde o início</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Eu</div>
+        <div class="metric-value positive">${fmtBRL(totalEu)}</div>
+        <div class="metric-sub">${totalAtual>0?((totalEu/totalAtual*100).toFixed(1)+'%'):'—'}</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Esposa</div>
+        <div class="metric-value" style="color:var(--purple)">${fmtBRL(totalEsposa)}</div>
+        <div class="metric-sub">${totalAtual>0?((totalEsposa/totalAtual*100).toFixed(1)+'%'):'—'}</div>
+      </div>
+    </div>
+
+    ${meses.length > 1 ? `
+    <div class="section-header">Evolução</div>
+    <div class="card">
+      <div class="chart-container" style="height:180px"><canvas id="ch-evolucao" role="img" aria-label="Gráfico de evolução patrimonial"></canvas></div>
+    </div>` : ''}
+
+    ${instKeys.length > 0 ? `
+    <div class="section-header">Por instituição</div>
+    <div class="card">
+      <div class="chart-legend" id="leg-inst"></div>
+      <div class="chart-container" style="height:160px"><canvas id="ch-inst" role="img" aria-label="Distribuição por instituição"></canvas></div>
+    </div>` : ''}
+  `;
+
+  setTimeout(() => {
+    destroyChart('evolucao'); destroyChart('inst');
+
+    if (meses.length > 1) {
+      charts['evolucao'] = new Chart(document.getElementById('ch-evolucao'), {
+        type: 'line',
+        data: { labels: mesesLabels, datasets: [{ label:'Total', data:totaisArr, borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.08)', fill:true, tension:0.4, pointBackgroundColor:'#3b82f6', pointRadius:3, borderWidth:2 }] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBRLDec(c.raw)}}}, scales:{y:{ticks:{callback:v=>fmtBRL(v),color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.05)'},border:{display:false}},x:{ticks:{color:'#555',font:{size:10}},grid:{display:false},border:{display:false}}}}
+      });
+      _charts['evolucao'] = charts['evolucao'];
+    }
+
+    if (instKeys.length > 0) {
+      const leg = document.getElementById('leg-inst');
+      if (leg) leg.innerHTML = instKeys.map((k,i)=>`<span class="legend-item"><span class="legend-dot" style="background:${COLORS[i%COLORS.length]}"></span>${k} · ${((instData[k]/totalAtual)*100).toFixed(0)}%</span>`).join('');
+      _charts['inst'] = new Chart(document.getElementById('ch-inst'), {
+        type: 'bar',
+        data: { labels: instKeys, datasets:[{data:instKeys.map(k=>instData[k]), backgroundColor:instKeys.map((_,i)=>COLORS[i%COLORS.length]), borderRadius:6, borderWidth:0}]},
+        options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBRLDec(c.raw)}}},scales:{x:{ticks:{callback:v=>fmtBRL(v),color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.05)'},border:{display:false}},y:{ticks:{color:'#888',font:{size:12}},grid:{display:false},border:{display:false}}}}
+      });
+    }
+  }, 60);
+}
+
+/* ---- LANÇAMENTO ---- */
+function renderLancamento() {
+  const div = document.getElementById('sec-lancamento');
+  const inst = getInst();
+  const hoje = new Date();
+  const mesAtual = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
+  const instOpts = inst.map(i=>`<option value="${i}">${i}</option>`).join('');
+
+  div.innerHTML = `
+    <div style="margin-top:16px"></div>
+    <div class="section-header">Novo lançamento</div>
+    <div class="form-group">
+      <label class="form-label">Mês de referência</label>
+      <input type="month" class="form-input" id="inp-mes" value="${mesAtual}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Instituição</label>
+      <select class="form-select" id="inp-inst">${instOpts}</select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Titular</label>
+      <select class="form-select" id="inp-titular">
+        <option value="eu">Eu</option>
+        <option value="esposa">Esposa</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Valor (R$)</label>
+      <input type="number" class="form-input" id="inp-valor" placeholder="0,00" min="0" step="0.01" inputmode="decimal">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="adicionarItem()" style="margin-bottom:24px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Adicionar
+    </button>
+
+    <div class="section-header">Lançamentos do mês</div>
+    <div id="tabela-lanc"></div>
+  `;
+
+  document.getElementById('inp-mes').addEventListener('change', atualizarTabLanc);
+  atualizarTabLanc();
+}
+
+function atualizarTabLanc() {
+  const mes = document.getElementById('inp-mes')?.value;
+  if (!mes) return;
+  const l = getLanc().filter(x => x.mes === mes);
+  const tbl = document.getElementById('tabela-lanc');
+  if (!tbl) return;
+
+  if (l.length === 0) {
+    tbl.innerHTML = `<div class="empty" style="padding:24px 0;font-size:13px">Nenhum lançamento para ${mes.split('-').reverse().join('/')}.</div>`;
+    return;
+  }
+
+  const total = l.reduce((a,b) => a+(b.valor||0), 0);
+  tbl.innerHTML = `<div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Instituição</th><th>Titular</th><th>Valor</th><th></th></tr></thead>
+      <tbody>${l.map(item=>`<tr>
+        <td><span class="badge">${item.instituicao}</span></td>
+        <td><span class="pill ${item.titular==='eu'?'pill-eu':'pill-esposa'}">${item.titular==='eu'?'Eu':'Esposa'}</span></td>
+        <td class="mono">${fmtBRL(item.valor)}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="removerItem('${item.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button></td>
+      </tr>`).join('')}</tbody>
+    </table>
+    <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:13px;color:var(--text2)">Total do mês</span>
+      <span class="mono" style="font-size:15px;font-weight:600">${fmtBRLDec(total)}</span>
+    </div>
+  </div>`;
+}
+
+function adicionarItem() {
+  const mes = document.getElementById('inp-mes')?.value;
+  const inst = document.getElementById('inp-inst')?.value;
+  const titular = document.getElementById('inp-titular')?.value;
+  const valor = parseFloat(document.getElementById('inp-valor')?.value || '0');
+  if (!mes || !inst || isNaN(valor) || valor <= 0) { alert('Preencha todos os campos com valores válidos.'); return; }
+  const s = gs();
+  if (!s.lancamentos) s.lancamentos = [];
+  s.lancamentos.push({ id: Date.now().toString(36)+Math.random().toString(36).slice(2), mes, instituicao:inst, titular, valor });
+  ss(s);
+  document.getElementById('inp-valor').value = '';
+  atualizarTabLanc();
+}
+
+function removerItem(id) {
+  if (!confirm('Remover este lançamento?')) return;
+  const s = gs();
+  s.lancamentos = (s.lancamentos||[]).filter(x => x.id !== id);
+  ss(s);
+  atualizarTabLanc();
+}
+
+/* ---- HISTÓRICO ---- */
+function renderHistorico() {
+  const div = document.getElementById('sec-historico');
+  const meses = getMeses(), tm = totaisPorMes();
+
+  if (meses.length === 0) {
+    div.innerHTML = `<div class="empty" style="padding-top:60px">Nenhum lançamento ainda.</div>`;
+    return;
+  }
+
+  const allInst = [...new Set(getLanc().map(x=>x.instituicao))];
+  const mesesLabels = meses.map(m => { const [a,mo] = m.split('-'); return mo+'/'+a.slice(2); });
+
+  const rows = [...meses].reverse().map((m,idx,arr) => {
+    const origIdx = meses.indexOf(m);
+    const total = tm[m]?.total || 0;
+    const anterior = origIdx > 0 ? (tm[meses[origIdx-1]]?.total || 0) : null;
+    const var_ = anterior != null ? ((total-anterior)/anterior*100) : null;
+    const items = tm[m]?.items || [];
+    const eu = items.filter(x=>x.titular==='eu').reduce((a,b)=>a+(b.valor||0),0);
+    const esposa = items.filter(x=>x.titular==='esposa').reduce((a,b)=>a+(b.valor||0),0);
+    return `<tr>
+      <td style="font-weight:500;font-size:13px">${m.split('-').reverse().join('/')}</td>
+      <td class="mono">${fmtBRL(total)}</td>
+      <td class="${var_===null?'neutral':var_>=0?'positive':'negative'} mono">${var_===null?'—':fmtPct(var_)}</td>
+    </tr>`;
+  }).join('');
+
+  div.innerHTML = `
+    <div style="margin-top:16px"></div>
+    ${meses.length > 1 ? `
+    <div class="section-header">Evolução por instituição</div>
+    <div class="card">
+      <div class="chart-legend" id="leg-hist"></div>
+      <div class="chart-container" style="height:200px"><canvas id="ch-hist" role="img" aria-label="Evolução por instituição"></canvas></div>
+    </div>` : ''}
+    <div class="section-header">Resumo mensal</div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table>
+        <thead><tr><th>Mês</th><th>Total</th><th>Variação</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+
+  setTimeout(() => {
+    destroyChart('hist');
+    if (meses.length > 1) {
+      const datasets = allInst.map((k,i) => ({
+        label:k,
+        data: meses.map(m => (tm[m]?.items||[]).filter(x=>x.instituicao===k).reduce((a,b)=>a+(b.valor||0),0)),
+        borderColor: COLORS[i%COLORS.length],
+        backgroundColor: COLORS[i%COLORS.length]+'22',
+        fill:false, tension:0.35, pointRadius:3, borderWidth:2
+      }));
+      const leg = document.getElementById('leg-hist');
+      if(leg) leg.innerHTML = allInst.map((k,i)=>`<span class="legend-item"><span class="legend-dot" style="background:${COLORS[i%COLORS.length]}"></span>${k}</span>`).join('');
+      _charts['hist'] = new Chart(document.getElementById('ch-hist'), {
+        type:'line', data:{labels:mesesLabels,datasets},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtBRLDec(c.raw)}}},scales:{y:{ticks:{callback:v=>fmtBRL(v),color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.05)'},border:{display:false}},x:{ticks:{color:'#555',font:{size:10}},grid:{display:false},border:{display:false}}}}
+      });
+    }
+  }, 60);
+}
+
+/* ---- CONFIG ---- */
+function renderConfig() {
+  const div = document.getElementById('sec-config');
+  const inst = getInst();
+  const meta = getMeta();
+
+  div.innerHTML = `
+    <div style="margin-top:16px"></div>
+    <div class="section-header">Instituições</div>
+    <div class="card">
+      <div>${inst.map((k,i)=>`<div class="config-item">
+        <span class="config-item-name">${k}</span>
+        <button class="btn btn-danger btn-sm" onclick="removerInst(${i})">Remover</button>
+      </div>`).join('')}</div>
+      <div style="display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        <input type="text" class="form-input" id="nova-inst" placeholder="Nome da instituição">
+        <button class="btn btn-primary" onclick="adicionarInst()" style="white-space:nowrap">+ Add</button>
+      </div>
+    </div>
+
+    <div class="section-header">Meta patrimonial</div>
+    <div class="card">
+      <div class="form-group" style="margin-bottom:10px">
+        <label class="form-label">Valor da meta (R$)</label>
+        <input type="number" class="form-input" id="inp-meta" value="${meta||''}" placeholder="Ex: 500000" min="0" inputmode="decimal">
+      </div>
+      <button class="btn btn-primary" onclick="salvarMeta()">Salvar meta</button>
+    </div>
+
+    <div class="section-header">Backup de dados</div>
+    <div class="card">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6">Os dados ficam salvos neste dispositivo. Use exportar/importar para fazer backup ou transferir para outro celular.</p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn" onclick="exportarDados()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar JSON
+        </button>
+        <button class="btn" onclick="document.getElementById('imp-file').click()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Importar JSON
+        </button>
+        <input type="file" id="imp-file" accept=".json" style="display:none" onchange="importarDados(this)">
+        <button class="btn btn-danger" onclick="limparDados()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          Limpar todos os dados
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function adicionarInst() {
+  const v = document.getElementById('nova-inst')?.value?.trim();
+  if (!v) return;
+  const s = gs();
+  if (!s.instituicoes) s.instituicoes = ['Nubank','XP','Inter'];
+  if (s.instituicoes.includes(v)) { alert('Já existe.'); return; }
+  s.instituicoes.push(v);
+  ss(s); renderConfig();
+}
+function removerInst(i) {
+  const s = gs();
+  if (!s.instituicoes) return;
+  s.instituicoes.splice(i,1); ss(s); renderConfig();
+}
+function salvarMeta() {
+  const v = parseFloat(document.getElementById('inp-meta')?.value||'0');
+  const s = gs(); s.meta = v > 0 ? v : 0; ss(s);
+  alert('Meta salva: ' + fmtBRLDec(v));
+}
+function exportarDados() {
+  const blob = new Blob([JSON.stringify(gs(),null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'investimentos_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+}
+function importarDados(inp) {
+  const f = inp.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      if (!confirm('Isso vai substituir os dados atuais. Continuar?')) return;
+      ss(d); renderConfig(); alert('Importado com sucesso!');
+    } catch(err) { alert('Arquivo inválido.'); }
+  };
+  r.readAsText(f); inp.value='';
+}
+function limparDados() {
+  if (!confirm('Apagar TODOS os dados permanentemente?')) return;
+  localStorage.removeItem('invest_v2');
+  renderConfig(); alert('Dados apagados.');
+}
+
+renderDashboard();
+</script>
+</body>
+</html>
