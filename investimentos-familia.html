@@ -263,6 +263,275 @@ function gs() {
   try { return JSON.parse(localStorage.getItem('invest_v2') || '{}'); } catch(e) { return {}; }
 }
 function ss(s) { localStorage.setItem('invest_v2', JSON.stringify(s)); }
+
+function seedData() {
+  const existing = gs();
+  if (existing.seeded) return; // já foi importado, não sobrescreve
+
+  const inst = ['Genial','Nu Bank','Binance','C6','Grão','Cake/Metamask','Hospital','Sofisa','Mercado Bitcoin','Avenue','Marco'];
+
+  // Orlando: saldos finais por mês e instituição
+  // Giulia: começa em 2025-09
+  const raw = [
+    // [mes, titular, instituicao, valor]
+    // ---- OUT/2024 ----
+    ['2024-10','orlando','Genial',1726.00],
+    ['2024-10','orlando','Nu Bank',3611.54],
+    ['2024-10','orlando','Binance',24850.00],
+    ['2024-10','orlando','C6',34891.00],
+    ['2024-10','orlando','Grão',43229.00],
+    ['2024-10','orlando','Cake/Metamask',966.15],
+    ['2024-10','orlando','Hospital',40000.00],
+    ['2024-10','orlando','Sofisa',19234.00],
+    ['2024-10','orlando','Mercado Bitcoin',10102.00],
+    // ---- NOV/2024 ----
+    ['2024-11','orlando','Genial',1699.00],
+    ['2024-11','orlando','Nu Bank',5536.00],
+    ['2024-11','orlando','Binance',26016.57],
+    ['2024-11','orlando','C6',38074.00],
+    ['2024-11','orlando','Grão',43416.43],
+    ['2024-11','orlando','Cake/Metamask',955.35],
+    ['2024-11','orlando','Hospital',40000.00],
+    ['2024-11','orlando','Sofisa',19817.86],
+    ['2024-11','orlando','Mercado Bitcoin',12165.00],
+    // ---- DEZ/2024 ----
+    ['2024-12','orlando','Genial',1735.00],
+    ['2024-12','orlando','Nu Bank',6234.00],
+    ['2024-12','orlando','Binance',37424.00],
+    ['2024-12','orlando','C6',40417.00],
+    ['2024-12','orlando','Grão',44854.00],
+    ['2024-12','orlando','Cake/Metamask',1046.50],
+    ['2024-12','orlando','Hospital',40000.00],
+    ['2024-12','orlando','Sofisa',19978.00],
+    ['2024-12','orlando','Mercado Bitcoin',12284.00],
+    // ---- JAN/2025 ----
+    ['2025-01','orlando','Genial',1278.58],
+    ['2025-01','orlando','Nu Bank',3277.26],
+    ['2025-01','orlando','Binance',33309.91],
+    ['2025-01','orlando','C6',39025.71],
+    ['2025-01','orlando','Grão',45558.73],
+    ['2025-01','orlando','Cake/Metamask',1417.52],
+    ['2025-01','orlando','Hospital',40000.00],
+    ['2025-01','orlando','Sofisa',23634.17],
+    ['2025-01','orlando','Mercado Bitcoin',12398.00],
+    // ---- FEV/2025 ----
+    ['2025-02','orlando','Genial',1237.00],
+    ['2025-02','orlando','Nu Bank',10718.00],
+    ['2025-02','orlando','Binance',32608.00],
+    ['2025-02','orlando','C6',42713.54],
+    ['2025-02','orlando','Grão',46566.00],
+    ['2025-02','orlando','Cake/Metamask',1085.98],
+    ['2025-02','orlando','Hospital',40000.00],
+    ['2025-02','orlando','Sofisa',24830.00],
+    ['2025-02','orlando','Mercado Bitcoin',12573.00],
+    // ---- MAR/2025 ----
+    ['2025-03','orlando','Genial',1339.98],
+    ['2025-03','orlando','Nu Bank',8160.00],
+    ['2025-03','orlando','Binance',26326.00],
+    ['2025-03','orlando','C6',44788.94],
+    ['2025-03','orlando','Grão',47667.68],
+    ['2025-03','orlando','Cake/Metamask',1105.44],
+    ['2025-03','orlando','Hospital',40000.00],
+    ['2025-03','orlando','Sofisa',24777.00],
+    ['2025-03','orlando','Mercado Bitcoin',17802.94],
+    // ---- ABR/2025 ----
+    ['2025-04','orlando','Genial',1905.18],
+    ['2025-04','orlando','Nu Bank',4873.98],
+    ['2025-04','orlando','Binance',24491.32],
+    ['2025-04','orlando','C6',47524.04],
+    ['2025-04','orlando','Grão',50609.21],
+    ['2025-04','orlando','Cake/Metamask',1076.26],
+    ['2025-04','orlando','Hospital',40000.00],
+    ['2025-04','orlando','Sofisa',31344.00],
+    ['2025-04','orlando','Mercado Bitcoin',13686.00],
+    // ---- MAI/2025 ----
+    ['2025-05','orlando','Genial',1724.76],
+    ['2025-05','orlando','Nu Bank',3229.83],
+    ['2025-05','orlando','Binance',26148.14],
+    ['2025-05','orlando','C6',48208.68],
+    ['2025-05','orlando','Grão',51045.42],
+    ['2025-05','orlando','Cake/Metamask',1091.48],
+    ['2025-05','orlando','Hospital',40000.00],
+    ['2025-05','orlando','Sofisa',35168.71],
+    ['2025-05','orlando','Mercado Bitcoin',13846.11],
+    // ---- JUN/2025 ----
+    ['2025-06','orlando','Genial',1659.60],
+    ['2025-06','orlando','Nu Bank',3597.75],
+    ['2025-06','orlando','Binance',30285.31],
+    ['2025-06','orlando','C6',51404.81],
+    ['2025-06','orlando','Grão',52866.44],
+    ['2025-06','orlando','Cake/Metamask',1264.61],
+    ['2025-06','orlando','Hospital',40000.00],
+    ['2025-06','orlando','Sofisa',39100.06],
+    ['2025-06','orlando','Mercado Bitcoin',14000.72],
+    // ---- JUL/2025 ----
+    ['2025-07','orlando','Genial',1711.00],
+    ['2025-07','orlando','Nu Bank',6465.98],
+    ['2025-07','orlando','Binance',28704.55],
+    ['2025-07','orlando','C6',45613.62],
+    ['2025-07','orlando','Grão',53977.91],
+    ['2025-07','orlando','Cake/Metamask',1204.92],
+    ['2025-07','orlando','Hospital',40000.00],
+    ['2025-07','orlando','Sofisa',39557.00],
+    ['2025-07','orlando','Mercado Bitcoin',14148.00],
+    // ---- AGO/2025 ----
+    ['2025-08','orlando','Genial',1274.00],
+    ['2025-08','orlando','Nu Bank',2899.65],
+    ['2025-08','orlando','Binance',34467.00],
+    ['2025-08','orlando','C6',45769.80],
+    ['2025-08','orlando','Grão',54258.00],
+    ['2025-08','orlando','Cake/Metamask',1447.64],
+    ['2025-08','orlando','Hospital',40000.00],
+    ['2025-08','orlando','Sofisa',34920.00],
+    ['2025-08','orlando','Mercado Bitcoin',14319.00],
+    // ---- SET/2025 (Orlando + Giulia começa) ----
+    ['2025-09','orlando','Genial',1490.00],
+    ['2025-09','orlando','Nu Bank',8515.00],
+    ['2025-09','orlando','Binance',34164.00],
+    ['2025-09','orlando','C6',47437.87],
+    ['2025-09','orlando','Grão',55205.91],
+    ['2025-09','orlando','Cake/Metamask',1286.91],
+    ['2025-09','orlando','Hospital',40000.00],
+    ['2025-09','orlando','Sofisa',35372.00],
+    ['2025-09','orlando','Mercado Bitcoin',14478.00],
+    ['2025-09','giulia','Nu Bank',9482.00],
+    ['2025-09','giulia','C6',28534.00],
+    ['2025-09','giulia','Avenue',2039.88],
+    ['2025-09','giulia','Binance',8923.00],
+    ['2025-09','giulia','Sofisa',84239.00],
+    ['2025-09','giulia','Marco',15000.00],
+    ['2025-09','giulia','Mercado Bitcoin',6653.35],
+    // ---- OUT/2025 ----
+    ['2025-10','orlando','Genial',1916.00],
+    ['2025-10','orlando','Nu Bank',8885.13],
+    ['2025-10','orlando','Binance',33312.00],
+    ['2025-10','orlando','C6',47585.51],
+    ['2025-10','orlando','Grão',56512.55],
+    ['2025-10','orlando','Cake/Metamask',1266.16],
+    ['2025-10','orlando','Hospital',40000.00],
+    ['2025-10','orlando','Sofisa',35750.05],
+    ['2025-10','orlando','Mercado Bitcoin',14670.73],
+    ['2025-10','giulia','Nu Bank',6780.21],
+    ['2025-10','giulia','C6',28551.22],
+    ['2025-10','giulia','Avenue',1997.27],
+    ['2025-10','giulia','Binance',8046.76],
+    ['2025-10','giulia','Sofisa',84004.22],
+    ['2025-10','giulia','Marco',15000.00],
+    ['2025-10','giulia','Mercado Bitcoin',6653.35],
+    // ---- NOV/2025 ----
+    ['2025-11','orlando','Genial',1607.00],
+    ['2025-11','orlando','Nu Bank',8319.22],
+    ['2025-11','orlando','Binance',31738.00],
+    ['2025-11','orlando','C6',52840.95],
+    ['2025-11','orlando','Grão',57227.51],
+    ['2025-11','orlando','Cake/Metamask',1229.33],
+    ['2025-11','orlando','Hospital',40000.00],
+    ['2025-11','orlando','Sofisa',36214.41],
+    ['2025-11','orlando','Mercado Bitcoin',14847.00],
+    ['2025-11','giulia','Nu Bank',5831.73],
+    ['2025-11','giulia','C6',30086.91],
+    ['2025-11','giulia','Avenue',2069.04],
+    ['2025-11','giulia','Binance',6674.47],
+    ['2025-11','giulia','Sofisa',85027.66],
+    ['2025-11','giulia','Marco',15000.00],
+    ['2025-11','giulia','Mercado Bitcoin',6738.62],
+    // ---- DEZ/2025 ----
+    ['2025-12','orlando','Genial',1888.35],
+    ['2025-12','orlando','Nu Bank',7335.53],
+    ['2025-12','orlando','Binance',26540.38],
+    ['2025-12','orlando','C6',56132.72],
+    ['2025-12','orlando','Grão',58504.04],
+    ['2025-12','orlando','Cake/Metamask',1214.32],
+    ['2025-12','orlando','Hospital',40000.00],
+    ['2025-12','orlando','Sofisa',36624.25],
+    ['2025-12','orlando','Mercado Bitcoin',15036.58],
+    ['2025-12','giulia','Nu Bank',7895.51],
+    ['2025-12','giulia','C6',38816.75],
+    ['2025-12','giulia','Avenue',2023.63],
+    ['2025-12','giulia','Binance',6589.02],
+    ['2025-12','giulia','Sofisa',103315.04],
+    ['2025-12','giulia','Marco',15000.00],
+    ['2025-12','giulia','Mercado Bitcoin',14404.99],
+    // ---- JAN/2026 ----
+    ['2026-01','orlando','Genial',1807.09],
+    ['2026-01','orlando','Nu Bank',11341.76],
+    ['2026-01','orlando','Binance',26307.10],
+    ['2026-01','orlando','C6',57945.29],
+    ['2026-01','orlando','Grão',59507.62],
+    ['2026-01','orlando','Cake/Metamask',1214.32],
+    ['2026-01','orlando','Hospital',40000.00],
+    ['2026-01','orlando','Sofisa',37098.27],
+    ['2026-01','orlando','Mercado Bitcoin',15211.56],
+    ['2026-01','giulia','Nu Bank',7272.00],
+    ['2026-01','giulia','C6',38597.80],
+    ['2026-01','giulia','Avenue',1949.36],
+    ['2026-01','giulia','Binance',6023.00],
+    ['2026-01','giulia','Sofisa',104564.00],
+    ['2026-01','giulia','Marco',15000.00],
+    ['2026-01','giulia','Mercado Bitcoin',14595.00],
+    // ---- FEV/2026 ----
+    ['2026-02','orlando','Genial',1942.00],
+    ['2026-02','orlando','Nu Bank',10126.45],
+    ['2026-02','orlando','Binance',23900.55],
+    ['2026-02','orlando','C6',58315.32],
+    ['2026-02','orlando','Grão',60989.94],
+    ['2026-02','orlando','Cake/Metamask',692.55],
+    ['2026-02','orlando','Hospital',40000.00],
+    ['2026-02','orlando','Sofisa',42594.58],
+    ['2026-02','orlando','Mercado Bitcoin',15401.88],
+    ['2026-02','giulia','Nu Bank',7355.22],
+    ['2026-02','giulia','C6',40185.82],
+    ['2026-02','giulia','Avenue',1891.89],
+    ['2026-02','giulia','Binance',4586.88],
+    ['2026-02','giulia','Sofisa',105758.99],
+    ['2026-02','giulia','Marco',16000.00],
+    ['2026-02','giulia','Mercado Bitcoin',14771.80],
+    // ---- MAR/2026 ----
+    ['2026-03','orlando','Genial',1888.00],
+    ['2026-03','orlando','Nu Bank',12127.86],
+    ['2026-03','orlando','Binance',19726.00],
+    ['2026-03','orlando','C6',61126.14],
+    ['2026-03','orlando','Grão',61870.16],
+    ['2026-03','orlando','Cake/Metamask',733.20],
+    ['2026-03','orlando','Hospital',40000.00],
+    ['2026-03','orlando','Sofisa',43080.00],
+    ['2026-03','orlando','Mercado Bitcoin',15575.69],
+    ['2026-03','giulia','Nu Bank',5670.81],
+    ['2026-03','giulia','C6',43197.06],
+    ['2026-03','giulia','Avenue',1804.97],
+    ['2026-03','giulia','Binance',4840.90],
+    ['2026-03','giulia','Sofisa',108672.06],
+    ['2026-03','giulia','Marco',15000.00],
+    ['2026-03','giulia','Mercado Bitcoin',14942.01],
+    // ---- ABR/2026 ----
+    ['2026-04','orlando','Genial',1650.00],
+    ['2026-04','orlando','Nu Bank',14903.72],
+    ['2026-04','orlando','Binance',20335.41],
+    ['2026-04','orlando','C6',62693.60],
+    ['2026-04','orlando','Grão',61511.45],
+    ['2026-04','orlando','Cake/Metamask',785.25],
+    ['2026-04','orlando','Hospital',40000.00],
+    ['2026-04','orlando','Sofisa',50687.20],
+    ['2026-04','orlando','Mercado Bitcoin',15929.70],
+    ['2026-04','giulia','Nu Bank',7060.62],
+    ['2026-04','giulia','C6',48328.47],
+    ['2026-04','giulia','Avenue',1901.25],
+    ['2026-04','giulia','Binance',5197.29],
+    ['2026-04','giulia','Sofisa',109897.04],
+    ['2026-04','giulia','Marco',15000.00],
+    ['2026-04','giulia','Mercado Bitcoin',15047.60],
+  ];
+
+  const lancamentos = raw.map(([mes, titular, instituicao, valor]) => ({
+    id: mes+'-'+titular+'-'+instituicao.replace(/\s/g,'')+'-'+Math.random().toString(36).slice(2),
+    mes, instituicao, titular, valor
+  }));
+
+  ss({ seeded: true, instituicoes: inst, lancamentos, meta: 0 });
+}
+
+seedData();
+
 function getInst() { return gs().instituicoes || ['Nubank','XP','Inter']; }
 function getLanc() { return gs().lancamentos || []; }
 function getMeta() { return parseFloat(gs().meta) || 0; }
@@ -329,8 +598,8 @@ function renderDashboard() {
   const metaPct = meta > 0 ? Math.min(totalAtual / meta * 100, 100) : null;
 
   const itensUltimo = tm[ultimo]?.items || [];
-  const totalEu = itensUltimo.filter(x=>x.titular==='eu').reduce((a,b)=>a+(b.valor||0),0);
-  const totalEsposa = itensUltimo.filter(x=>x.titular==='esposa').reduce((a,b)=>a+(b.valor||0),0);
+  const totalEu = itensUltimo.filter(x=>x.titular==='eu'||x.titular==='orlando').reduce((a,b)=>a+(b.valor||0),0);
+  const totalEsposa = itensUltimo.filter(x=>x.titular==='esposa'||x.titular==='giulia').reduce((a,b)=>a+(b.valor||0),0);
 
   const instData = {};
   itensUltimo.forEach(i => { instData[i.instituicao] = (instData[i.instituicao]||0) + (i.valor||0); });
@@ -372,12 +641,12 @@ function renderDashboard() {
         <div class="metric-sub">desde o início</div>
       </div>
       <div class="metric">
-        <div class="metric-label">Eu</div>
+        <div class="metric-label">Orlando</div>
         <div class="metric-value positive">${fmtBRL(totalEu)}</div>
         <div class="metric-sub">${totalAtual>0?((totalEu/totalAtual*100).toFixed(1)+'%'):'—'}</div>
       </div>
       <div class="metric">
-        <div class="metric-label">Esposa</div>
+        <div class="metric-label">Giulia</div>
         <div class="metric-value" style="color:var(--purple)">${fmtBRL(totalEsposa)}</div>
         <div class="metric-sub">${totalAtual>0?((totalEsposa/totalAtual*100).toFixed(1)+'%'):'—'}</div>
       </div>
@@ -443,8 +712,8 @@ function renderLancamento() {
     <div class="form-group">
       <label class="form-label">Titular</label>
       <select class="form-select" id="inp-titular">
-        <option value="eu">Eu</option>
-        <option value="esposa">Esposa</option>
+        <option value="orlando">Orlando</option>
+        <option value="giulia">Giulia</option>
       </select>
     </div>
     <div class="form-group">
@@ -482,7 +751,7 @@ function atualizarTabLanc() {
       <thead><tr><th>Instituição</th><th>Titular</th><th>Valor</th><th></th></tr></thead>
       <tbody>${l.map(item=>`<tr>
         <td><span class="badge">${item.instituicao}</span></td>
-        <td><span class="pill ${item.titular==='eu'?'pill-eu':'pill-esposa'}">${item.titular==='eu'?'Eu':'Esposa'}</span></td>
+        <td><span class="pill ${item.titular==='orlando'||item.titular==='eu'?'pill-eu':'pill-esposa'}">${item.titular==='orlando'||item.titular==='eu'?'Orlando':'Giulia'}</span></td>
         <td class="mono">${fmtBRL(item.valor)}</td>
         <td><button class="btn btn-danger btn-sm" onclick="removerItem('${item.id}')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
