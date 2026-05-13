@@ -260,274 +260,251 @@ const COLORS = ['#3b82f6','#22c55e','#f59e0b','#a78bfa','#ef4444','#06b6d4','#f9
 let _charts = {};
 
 function gs() {
-  try { return JSON.parse(localStorage.getItem('invest_v2') || '{}'); } catch(e) { return {}; }
+  try { return JSON.parse(localStorage.getItem('invest_v4') || '{}'); } catch(e) { return {}; }
 }
-function ss(s) { localStorage.setItem('invest_v2', JSON.stringify(s)); }
+function ss(s) { localStorage.setItem('invest_v4', JSON.stringify(s)); }
 
 function seedData() {
   const existing = gs();
-  if (existing.seeded) return; // já foi importado, não sobrescreve
+  if (existing.seeded) return;
 
   const inst = ['Genial','Nu Bank','Binance','C6','Grão','Cake/Metamask','Hospital','Sofisa','Mercado Bitcoin','Avenue','Marco'];
 
-  // Orlando: saldos finais por mês e instituição
-  // Giulia: começa em 2025-09
+  // Dados lidos do Excel simplificado (sem colunas de variação) — conferidos automaticamente
   const raw = [
-    // [mes, titular, instituicao, valor]
-    // ---- OUT/2024 ----
-    ['2024-10','orlando','Genial',1726.00],
-    ['2024-10','orlando','Nu Bank',3611.54],
-    ['2024-10','orlando','Binance',24850.00],
-    ['2024-10','orlando','C6',34891.00],
-    ['2024-10','orlando','Grão',43229.00],
-    ['2024-10','orlando','Cake/Metamask',966.15],
-    ['2024-10','orlando','Hospital',40000.00],
-    ['2024-10','orlando','Sofisa',19234.00],
-    ['2024-10','orlando','Mercado Bitcoin',10102.00],
-    // ---- NOV/2024 ----
-    ['2024-11','orlando','Genial',1699.00],
-    ['2024-11','orlando','Nu Bank',5536.00],
-    ['2024-11','orlando','Binance',26016.57],
-    ['2024-11','orlando','C6',38074.00],
-    ['2024-11','orlando','Grão',43416.43],
-    ['2024-11','orlando','Cake/Metamask',955.35],
-    ['2024-11','orlando','Hospital',40000.00],
-    ['2024-11','orlando','Sofisa',19817.86],
-    ['2024-11','orlando','Mercado Bitcoin',12165.00],
-    // ---- DEZ/2024 ----
-    ['2024-12','orlando','Genial',1735.00],
-    ['2024-12','orlando','Nu Bank',6234.00],
-    ['2024-12','orlando','Binance',37424.00],
-    ['2024-12','orlando','C6',40417.00],
-    ['2024-12','orlando','Grão',44854.00],
-    ['2024-12','orlando','Cake/Metamask',1046.50],
-    ['2024-12','orlando','Hospital',40000.00],
-    ['2024-12','orlando','Sofisa',19978.00],
-    ['2024-12','orlando','Mercado Bitcoin',12284.00],
-    // ---- JAN/2025 ----
-    ['2025-01','orlando','Genial',1278.58],
-    ['2025-01','orlando','Nu Bank',3277.26],
-    ['2025-01','orlando','Binance',33309.91],
-    ['2025-01','orlando','C6',39025.71],
-    ['2025-01','orlando','Grão',45558.73],
-    ['2025-01','orlando','Cake/Metamask',1417.52],
-    ['2025-01','orlando','Hospital',40000.00],
-    ['2025-01','orlando','Sofisa',23634.17],
-    ['2025-01','orlando','Mercado Bitcoin',12398.00],
-    // ---- FEV/2025 ----
-    ['2025-02','orlando','Genial',1237.00],
-    ['2025-02','orlando','Nu Bank',10718.00],
-    ['2025-02','orlando','Binance',32608.00],
-    ['2025-02','orlando','C6',42713.54],
-    ['2025-02','orlando','Grão',46566.00],
-    ['2025-02','orlando','Cake/Metamask',1085.98],
-    ['2025-02','orlando','Hospital',40000.00],
-    ['2025-02','orlando','Sofisa',24830.00],
-    ['2025-02','orlando','Mercado Bitcoin',12573.00],
-    // ---- MAR/2025 ----
-    ['2025-03','orlando','Genial',1339.98],
-    ['2025-03','orlando','Nu Bank',8160.00],
-    ['2025-03','orlando','Binance',26326.00],
-    ['2025-03','orlando','C6',44788.94],
-    ['2025-03','orlando','Grão',47667.68],
-    ['2025-03','orlando','Cake/Metamask',1105.44],
-    ['2025-03','orlando','Hospital',40000.00],
-    ['2025-03','orlando','Sofisa',24777.00],
-    ['2025-03','orlando','Mercado Bitcoin',17802.94],
-    // ---- ABR/2025 ----
-    ['2025-04','orlando','Genial',1905.18],
-    ['2025-04','orlando','Nu Bank',4873.98],
-    ['2025-04','orlando','Binance',24491.32],
-    ['2025-04','orlando','C6',47524.04],
-    ['2025-04','orlando','Grão',50609.21],
-    ['2025-04','orlando','Cake/Metamask',1076.26],
-    ['2025-04','orlando','Hospital',40000.00],
-    ['2025-04','orlando','Sofisa',31344.00],
-    ['2025-04','orlando','Mercado Bitcoin',13686.00],
-    // ---- MAI/2025 ----
-    ['2025-05','orlando','Genial',1724.76],
-    ['2025-05','orlando','Nu Bank',3229.83],
-    ['2025-05','orlando','Binance',26148.14],
-    ['2025-05','orlando','C6',48208.68],
-    ['2025-05','orlando','Grão',51045.42],
-    ['2025-05','orlando','Cake/Metamask',1091.48],
-    ['2025-05','orlando','Hospital',40000.00],
-    ['2025-05','orlando','Sofisa',35168.71],
-    ['2025-05','orlando','Mercado Bitcoin',13846.11],
-    // ---- JUN/2025 ----
-    ['2025-06','orlando','Genial',1659.60],
-    ['2025-06','orlando','Nu Bank',3597.75],
-    ['2025-06','orlando','Binance',30285.31],
-    ['2025-06','orlando','C6',51404.81],
-    ['2025-06','orlando','Grão',52866.44],
-    ['2025-06','orlando','Cake/Metamask',1264.61],
-    ['2025-06','orlando','Hospital',40000.00],
-    ['2025-06','orlando','Sofisa',39100.06],
-    ['2025-06','orlando','Mercado Bitcoin',14000.72],
-    // ---- JUL/2025 ----
-    ['2025-07','orlando','Genial',1711.00],
-    ['2025-07','orlando','Nu Bank',6465.98],
-    ['2025-07','orlando','Binance',28704.55],
-    ['2025-07','orlando','C6',45613.62],
-    ['2025-07','orlando','Grão',53977.91],
-    ['2025-07','orlando','Cake/Metamask',1204.92],
-    ['2025-07','orlando','Hospital',40000.00],
-    ['2025-07','orlando','Sofisa',39557.00],
-    ['2025-07','orlando','Mercado Bitcoin',14148.00],
-    // ---- AGO/2025 ----
-    ['2025-08','orlando','Genial',1274.00],
-    ['2025-08','orlando','Nu Bank',2899.65],
-    ['2025-08','orlando','Binance',34467.00],
-    ['2025-08','orlando','C6',45769.80],
-    ['2025-08','orlando','Grão',54258.00],
-    ['2025-08','orlando','Cake/Metamask',1447.64],
-    ['2025-08','orlando','Hospital',40000.00],
-    ['2025-08','orlando','Sofisa',34920.00],
-    ['2025-08','orlando','Mercado Bitcoin',14319.00],
-    // ---- SET/2025 (Orlando + Giulia começa) ----
-    ['2025-09','orlando','Genial',1490.00],
-    ['2025-09','orlando','Nu Bank',8515.00],
-    ['2025-09','orlando','Binance',34164.00],
-    ['2025-09','orlando','C6',47437.87],
-    ['2025-09','orlando','Grão',55205.91],
-    ['2025-09','orlando','Cake/Metamask',1286.91],
-    ['2025-09','orlando','Hospital',40000.00],
-    ['2025-09','orlando','Sofisa',35372.00],
-    ['2025-09','orlando','Mercado Bitcoin',14478.00],
-    ['2025-09','giulia','Nu Bank',9482.00],
-    ['2025-09','giulia','C6',28534.00],
+    ['2024-10','orlando','Genial',1699.0],
+    ['2024-10','orlando','Nu Bank',5536.0],
+    ['2024-10','orlando','Binance',26016.57],
+    ['2024-10','orlando','C6',38074.0],
+    ['2024-10','orlando','Grão',43416.43],
+    ['2024-10','orlando','Cake/Metamask',955.35],
+    ['2024-10','orlando','Hospital',40000.0],
+    ['2024-10','orlando','Sofisa',19817.86],
+    ['2024-10','orlando','Mercado Bitcoin',12165.0],
+    ['2024-11','orlando','Genial',1735.0],
+    ['2024-11','orlando','Nu Bank',6234.0],
+    ['2024-11','orlando','Binance',37424.0],
+    ['2024-11','orlando','C6',40417.0],
+    ['2024-11','orlando','Grão',44854.0],
+    ['2024-11','orlando','Cake/Metamask',1046.5],
+    ['2024-11','orlando','Hospital',40000.0],
+    ['2024-11','orlando','Sofisa',19978.0],
+    ['2024-11','orlando','Mercado Bitcoin',12284.0],
+    ['2024-12','orlando','Genial',1278.58],
+    ['2024-12','orlando','Nu Bank',3277.26],
+    ['2024-12','orlando','Binance',33309.91],
+    ['2024-12','orlando','C6',39025.71],
+    ['2024-12','orlando','Grão',45558.73],
+    ['2024-12','orlando','Cake/Metamask',1417.52],
+    ['2024-12','orlando','Hospital',40000.0],
+    ['2024-12','orlando','Sofisa',23634.17],
+    ['2024-12','orlando','Mercado Bitcoin',12398.0],
+    ['2025-01','orlando','Genial',1237.0],
+    ['2025-01','orlando','Nu Bank',10718.0],
+    ['2025-01','orlando','Binance',32608.0],
+    ['2025-01','orlando','C6',42713.54],
+    ['2025-01','orlando','Grão',46566.0],
+    ['2025-01','orlando','Cake/Metamask',1085.9752],
+    ['2025-01','orlando','Hospital',40000.0],
+    ['2025-01','orlando','Sofisa',24830.0],
+    ['2025-01','orlando','Mercado Bitcoin',12573.0],
+    ['2025-02','orlando','Genial',1339.98],
+    ['2025-02','orlando','Nu Bank',8160.0],
+    ['2025-02','orlando','Binance',26326.0],
+    ['2025-02','orlando','C6',44788.94],
+    ['2025-02','orlando','Grão',47667.68],
+    ['2025-02','orlando','Cake/Metamask',1105.44],
+    ['2025-02','orlando','Hospital',40000.0],
+    ['2025-02','orlando','Sofisa',24777.0],
+    ['2025-02','orlando','Mercado Bitcoin',17802.94],
+    ['2025-03','orlando','Genial',1905.18],
+    ['2025-03','orlando','Nu Bank',4873.98],
+    ['2025-03','orlando','Binance',24491.32],
+    ['2025-03','orlando','C6',47524.04],
+    ['2025-03','orlando','Grão',50609.21],
+    ['2025-03','orlando','Cake/Metamask',1076.256],
+    ['2025-03','orlando','Hospital',40000.0],
+    ['2025-03','orlando','Sofisa',31344.0],
+    ['2025-03','orlando','Mercado Bitcoin',13686.0],
+    ['2025-04','orlando','Genial',1724.76],
+    ['2025-04','orlando','Nu Bank',3229.83],
+    ['2025-04','orlando','Binance',26148.14],
+    ['2025-04','orlando','C6',48208.68],
+    ['2025-04','orlando','Grão',51045.42],
+    ['2025-04','orlando','Cake/Metamask',1091.475],
+    ['2025-04','orlando','Hospital',40000.0],
+    ['2025-04','orlando','Sofisa',35168.71],
+    ['2025-04','orlando','Mercado Bitcoin',13846.11],
+    ['2025-05','orlando','Genial',1659.6],
+    ['2025-05','orlando','Nu Bank',3597.75],
+    ['2025-05','orlando','Binance',30285.31],
+    ['2025-05','orlando','C6',51404.81],
+    ['2025-05','orlando','Grão',52866.44],
+    ['2025-05','orlando','Cake/Metamask',1264.611],
+    ['2025-05','orlando','Hospital',40000.0],
+    ['2025-05','orlando','Sofisa',39100.06],
+    ['2025-05','orlando','Mercado Bitcoin',14000.72],
+    ['2025-06','orlando','Genial',1711.0],
+    ['2025-06','orlando','Nu Bank',6465.98],
+    ['2025-06','orlando','Binance',28704.55],
+    ['2025-06','orlando','C6',45613.62],
+    ['2025-06','orlando','Grão',53977.91],
+    ['2025-06','orlando','Cake/Metamask',1204.917],
+    ['2025-06','orlando','Hospital',40000.0],
+    ['2025-06','orlando','Sofisa',39557.0],
+    ['2025-06','orlando','Mercado Bitcoin',14148.0],
+    ['2025-07','orlando','Genial',1274.0],
+    ['2025-07','orlando','Nu Bank',2899.65],
+    ['2025-07','orlando','Binance',34467.0],
+    ['2025-07','orlando','C6',45769.8],
+    ['2025-07','orlando','Grão',54258.0],
+    ['2025-07','orlando','Cake/Metamask',1447.638],
+    ['2025-07','orlando','Hospital',40000.0],
+    ['2025-07','orlando','Sofisa',34920.0],
+    ['2025-07','orlando','Mercado Bitcoin',14319.0],
+    ['2025-08','orlando','Genial',1490.0],
+    ['2025-08','orlando','Nu Bank',8515.0],
+    ['2025-08','orlando','Binance',34164.0],
+    ['2025-08','orlando','C6',47437.87],
+    ['2025-08','orlando','Grão',55205.91],
+    ['2025-08','orlando','Cake/Metamask',1286.91],
+    ['2025-08','orlando','Hospital',40000.0],
+    ['2025-08','orlando','Sofisa',35372.0],
+    ['2025-08','orlando','Mercado Bitcoin',14478.0],
+    ['2025-09','orlando','Genial',1916.0],
+    ['2025-09','orlando','Nu Bank',8885.13],
+    ['2025-09','orlando','Binance',33312.0],
+    ['2025-09','orlando','C6',47585.51],
+    ['2025-09','orlando','Grão',56512.55],
+    ['2025-09','orlando','Cake/Metamask',1266.16],
+    ['2025-09','orlando','Hospital',40000.0],
+    ['2025-09','orlando','Sofisa',35750.05],
+    ['2025-09','orlando','Mercado Bitcoin',14670.73],
+    ['2025-09','giulia','Nu Bank',9482.0],
+    ['2025-09','giulia','C6',28534.0],
     ['2025-09','giulia','Avenue',2039.88],
-    ['2025-09','giulia','Binance',8923.00],
-    ['2025-09','giulia','Sofisa',84239.00],
-    ['2025-09','giulia','Marco',15000.00],
-    ['2025-09','giulia','Mercado Bitcoin',6653.35],
-    // ---- OUT/2025 ----
-    ['2025-10','orlando','Genial',1916.00],
-    ['2025-10','orlando','Nu Bank',8885.13],
-    ['2025-10','orlando','Binance',33312.00],
-    ['2025-10','orlando','C6',47585.51],
-    ['2025-10','orlando','Grão',56512.55],
-    ['2025-10','orlando','Cake/Metamask',1266.16],
-    ['2025-10','orlando','Hospital',40000.00],
-    ['2025-10','orlando','Sofisa',35750.05],
-    ['2025-10','orlando','Mercado Bitcoin',14670.73],
+    ['2025-09','giulia','Binance',8923.0],
+    ['2025-09','giulia','Sofisa',84239.0],
+    ['2025-09','giulia','Marco',15000.0],
+    ['2025-10','orlando','Genial',1607.0],
+    ['2025-10','orlando','Nu Bank',8319.22],
+    ['2025-10','orlando','Binance',31738.0],
+    ['2025-10','orlando','C6',52840.95],
+    ['2025-10','orlando','Grão',57227.51],
+    ['2025-10','orlando','Cake/Metamask',1229.33],
+    ['2025-10','orlando','Hospital',40000.0],
+    ['2025-10','orlando','Sofisa',36214.41],
+    ['2025-10','orlando','Mercado Bitcoin',14847.0],
     ['2025-10','giulia','Nu Bank',6780.21],
     ['2025-10','giulia','C6',28551.22],
-    ['2025-10','giulia','Avenue',1997.27],
+    ['2025-10','giulia','Avenue',1997.2712],
     ['2025-10','giulia','Binance',8046.76],
     ['2025-10','giulia','Sofisa',84004.22],
-    ['2025-10','giulia','Marco',15000.00],
+    ['2025-10','giulia','Marco',15000.0],
     ['2025-10','giulia','Mercado Bitcoin',6653.35],
-    // ---- NOV/2025 ----
-    ['2025-11','orlando','Genial',1607.00],
-    ['2025-11','orlando','Nu Bank',8319.22],
-    ['2025-11','orlando','Binance',31738.00],
-    ['2025-11','orlando','C6',52840.95],
-    ['2025-11','orlando','Grão',57227.51],
-    ['2025-11','orlando','Cake/Metamask',1229.33],
-    ['2025-11','orlando','Hospital',40000.00],
-    ['2025-11','orlando','Sofisa',36214.41],
-    ['2025-11','orlando','Mercado Bitcoin',14847.00],
+    ['2025-11','orlando','Genial',1888.35],
+    ['2025-11','orlando','Nu Bank',7335.53],
+    ['2025-11','orlando','Binance',26540.38],
+    ['2025-11','orlando','C6',56132.72],
+    ['2025-11','orlando','Grão',58504.04],
+    ['2025-11','orlando','Cake/Metamask',1214.316],
+    ['2025-11','orlando','Hospital',40000.0],
+    ['2025-11','orlando','Sofisa',36624.25],
+    ['2025-11','orlando','Mercado Bitcoin',15036.58],
     ['2025-11','giulia','Nu Bank',5831.73],
     ['2025-11','giulia','C6',30086.91],
-    ['2025-11','giulia','Avenue',2069.04],
+    ['2025-11','giulia','Avenue',2069.0364],
     ['2025-11','giulia','Binance',6674.47],
     ['2025-11','giulia','Sofisa',85027.66],
-    ['2025-11','giulia','Marco',15000.00],
+    ['2025-11','giulia','Marco',15000.0],
     ['2025-11','giulia','Mercado Bitcoin',6738.62],
-    // ---- DEZ/2025 ----
-    ['2025-12','orlando','Genial',1888.35],
-    ['2025-12','orlando','Nu Bank',7335.53],
-    ['2025-12','orlando','Binance',26540.38],
-    ['2025-12','orlando','C6',56132.72],
-    ['2025-12','orlando','Grão',58504.04],
-    ['2025-12','orlando','Cake/Metamask',1214.32],
-    ['2025-12','orlando','Hospital',40000.00],
-    ['2025-12','orlando','Sofisa',36624.25],
-    ['2025-12','orlando','Mercado Bitcoin',15036.58],
+    ['2025-12','orlando','Genial',1807.09],
+    ['2025-12','orlando','Nu Bank',11341.76],
+    ['2025-12','orlando','Binance',26307.1],
+    ['2025-12','orlando','C6',57945.29],
+    ['2025-12','orlando','Grão',59507.62],
+    ['2025-12','orlando','Cake/Metamask',1214.316],
+    ['2025-12','orlando','Hospital',40000.0],
+    ['2025-12','orlando','Sofisa',37098.27],
+    ['2025-12','orlando','Mercado Bitcoin',15211.56],
     ['2025-12','giulia','Nu Bank',7895.51],
     ['2025-12','giulia','C6',38816.75],
-    ['2025-12','giulia','Avenue',2023.63],
+    ['2025-12','giulia','Avenue',2023.632],
     ['2025-12','giulia','Binance',6589.02],
     ['2025-12','giulia','Sofisa',103315.04],
-    ['2025-12','giulia','Marco',15000.00],
+    ['2025-12','giulia','Marco',15000.0],
     ['2025-12','giulia','Mercado Bitcoin',14404.99],
-    // ---- JAN/2026 ----
-    ['2026-01','orlando','Genial',1807.09],
-    ['2026-01','orlando','Nu Bank',11341.76],
-    ['2026-01','orlando','Binance',26307.10],
-    ['2026-01','orlando','C6',57945.29],
-    ['2026-01','orlando','Grão',59507.62],
-    ['2026-01','orlando','Cake/Metamask',1214.32],
-    ['2026-01','orlando','Hospital',40000.00],
-    ['2026-01','orlando','Sofisa',37098.27],
-    ['2026-01','orlando','Mercado Bitcoin',15211.56],
-    ['2026-01','giulia','Nu Bank',7272.00],
-    ['2026-01','giulia','C6',38597.80],
-    ['2026-01','giulia','Avenue',1949.36],
-    ['2026-01','giulia','Binance',6023.00],
-    ['2026-01','giulia','Sofisa',104564.00],
-    ['2026-01','giulia','Marco',15000.00],
-    ['2026-01','giulia','Mercado Bitcoin',14595.00],
-    // ---- FEV/2026 ----
-    ['2026-02','orlando','Genial',1942.00],
-    ['2026-02','orlando','Nu Bank',10126.45],
-    ['2026-02','orlando','Binance',23900.55],
-    ['2026-02','orlando','C6',58315.32],
-    ['2026-02','orlando','Grão',60989.94],
+    ['2026-01','orlando','Genial',1942.0],
+    ['2026-01','orlando','Nu Bank',10126.45],
+    ['2026-01','orlando','Binance',23900.55],
+    ['2026-01','orlando','C6',58315.32],
+    ['2026-01','orlando','Grão',60989.94],
+    ['2026-01','orlando','Hospital',40000.0],
+    ['2026-01','orlando','Sofisa',42594.58],
+    ['2026-01','orlando','Mercado Bitcoin',15401.88],
+    ['2026-01','giulia','Nu Bank',7272.0],
+    ['2026-01','giulia','C6',38597.8],
+    ['2026-01','giulia','Avenue',1949.356],
+    ['2026-01','giulia','Binance',6023.0],
+    ['2026-01','giulia','Sofisa',104564.0],
+    ['2026-01','giulia','Marco',15000.0],
+    ['2026-01','giulia','Mercado Bitcoin',14595.0],
+    ['2026-02','orlando','Genial',1888.0],
+    ['2026-02','orlando','Nu Bank',12127.86],
+    ['2026-02','orlando','Binance',18759.63],
+    ['2026-02','orlando','C6',61126.14],
+    ['2026-02','orlando','Grão',61870.16],
     ['2026-02','orlando','Cake/Metamask',692.55],
-    ['2026-02','orlando','Hospital',40000.00],
-    ['2026-02','orlando','Sofisa',42594.58],
-    ['2026-02','orlando','Mercado Bitcoin',15401.88],
+    ['2026-02','orlando','Hospital',40000.0],
+    ['2026-02','orlando','Sofisa',43080.0],
+    ['2026-02','orlando','Mercado Bitcoin',15575.69],
     ['2026-02','giulia','Nu Bank',7355.22],
     ['2026-02','giulia','C6',40185.82],
-    ['2026-02','giulia','Avenue',1891.89],
+    ['2026-02','giulia','Avenue',1891.8927],
     ['2026-02','giulia','Binance',4586.88],
     ['2026-02','giulia','Sofisa',105758.99],
-    ['2026-02','giulia','Marco',16000.00],
-    ['2026-02','giulia','Mercado Bitcoin',14771.80],
-    // ---- MAR/2026 ----
-    ['2026-03','orlando','Genial',1888.00],
-    ['2026-03','orlando','Nu Bank',12127.86],
-    ['2026-03','orlando','Binance',19726.00],
-    ['2026-03','orlando','C6',61126.14],
-    ['2026-03','orlando','Grão',61870.16],
-    ['2026-03','orlando','Cake/Metamask',733.20],
-    ['2026-03','orlando','Hospital',40000.00],
-    ['2026-03','orlando','Sofisa',43080.00],
-    ['2026-03','orlando','Mercado Bitcoin',15575.69],
+    ['2026-02','giulia','Marco',16000.0],
+    ['2026-02','giulia','Mercado Bitcoin',14771.8],
+    ['2026-03','orlando','Genial',1758.0],
+    ['2026-03','orlando','Nu Bank',14903.72],
+    ['2026-03','orlando','Binance',19726.0],
+    ['2026-03','orlando','C6',61326.26],
+    ['2026-03','orlando','Grão',60105.0],
+    ['2026-03','orlando','Cake/Metamask',733.2],
+    ['2026-03','orlando','Hospital',40000.0],
+    ['2026-03','orlando','Sofisa',43641.0],
+    ['2026-03','orlando','Mercado Bitcoin',15748.0],
     ['2026-03','giulia','Nu Bank',5670.81],
     ['2026-03','giulia','C6',43197.06],
-    ['2026-03','giulia','Avenue',1804.97],
-    ['2026-03','giulia','Binance',4840.90],
+    ['2026-03','giulia','Avenue',1804.972],
+    ['2026-03','giulia','Binance',4840.9],
     ['2026-03','giulia','Sofisa',108672.06],
-    ['2026-03','giulia','Marco',15000.00],
+    ['2026-03','giulia','Marco',15000.0],
     ['2026-03','giulia','Mercado Bitcoin',14942.01],
-    // ---- ABR/2026 ----
-    ['2026-04','orlando','Genial',1650.00],
-    ['2026-04','orlando','Nu Bank',14903.72],
+    ['2026-04','orlando','Genial',1650.0],
+    ['2026-04','orlando','Nu Bank',10407.91],
     ['2026-04','orlando','Binance',20335.41],
-    ['2026-04','orlando','C6',62693.60],
+    ['2026-04','orlando','C6',62693.6],
     ['2026-04','orlando','Grão',61511.45],
     ['2026-04','orlando','Cake/Metamask',785.25],
-    ['2026-04','orlando','Hospital',40000.00],
-    ['2026-04','orlando','Sofisa',50687.20],
-    ['2026-04','orlando','Mercado Bitcoin',15929.70],
+    ['2026-04','orlando','Hospital',40000.0],
+    ['2026-04','orlando','Sofisa',50687.2],
+    ['2026-04','orlando','Mercado Bitcoin',15929.7],
     ['2026-04','giulia','Nu Bank',7060.62],
     ['2026-04','giulia','C6',48328.47],
     ['2026-04','giulia','Avenue',1901.25],
     ['2026-04','giulia','Binance',5197.29],
     ['2026-04','giulia','Sofisa',109897.04],
-    ['2026-04','giulia','Marco',15000.00],
-    ['2026-04','giulia','Mercado Bitcoin',15047.60],
+    ['2026-04','giulia','Marco',15000.0],
+    ['2026-04','giulia','Mercado Bitcoin',15047.6],
   ];
 
   const lancamentos = raw.map(([mes, titular, instituicao, valor]) => ({
-    id: mes+'-'+titular+'-'+instituicao.replace(/\s/g,'')+'-'+Math.random().toString(36).slice(2),
+    id: mes+'-'+titular+'-'+instituicao.replace(/[\s/]/g,'')+'-'+Math.random().toString(36).slice(2),
     mes, instituicao, titular, valor
   }));
 
-  ss({ seeded: true, instituicoes: inst, lancamentos, meta: 0 });
+  ss({ seeded: true, instituicoes: inst, lancamentos, meta: 300000 });
 }
 
 seedData();
@@ -619,15 +596,17 @@ function renderDashboard() {
       <div class="card-sub">${ultimo.split('-').reverse().join('/')}</div>
     </div>
 
-    ${metaPct !== null ? `
     <div class="card" style="padding:14px 16px">
       <div class="progress-header">
         <span class="progress-title">Meta patrimonial</span>
-        <span class="progress-pct">${metaPct.toFixed(1)}%</span>
+        <span class="progress-pct">${metaPct !== null ? metaPct.toFixed(1)+'%' : '—'}</span>
       </div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${metaPct.toFixed(1)}%"></div></div>
-      <div class="progress-labels"><span>${fmtBRL(totalAtual)}</span><span>${fmtBRL(meta)}</span></div>
-    </div>` : ''}
+      <div class="progress-bar"><div class="progress-fill" style="width:${metaPct !== null ? metaPct.toFixed(1) : 0}%"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--text3)">
+        <span style="font-family:var(--mono)">${fmtBRL(totalAtual)}</span>
+        <span id="meta-val-display" onclick="editarMeta()" style="cursor:pointer;font-family:var(--mono);border-bottom:1px dashed var(--text3);padding-bottom:1px" title="Toque para editar a meta">${fmtBRL(meta > 0 ? meta : 0)} ✎</span>
+      </div>
+    </div>
 
     <div class="metrics">
       <div class="metric">
@@ -688,6 +667,19 @@ function renderDashboard() {
       });
     }
   }, 60);
+}
+
+
+function editarMeta() {
+  const s = gs();
+  const atual = parseFloat(s.meta) || 0;
+  const inp = prompt('Nova meta patrimonial (R$):', atual > 0 ? atual.toFixed(0) : '');
+  if (inp === null) return;
+  const v = parseFloat(inp.replace(/\./g,'').replace(',','.'));
+  if (isNaN(v) || v < 0) { alert('Valor inválido.'); return; }
+  s.meta = v;
+  ss(s);
+  renderDashboard();
 }
 
 /* ---- LANÇAMENTO ---- */
@@ -752,10 +744,15 @@ function atualizarTabLanc() {
       <tbody>${l.map(item=>`<tr>
         <td><span class="badge">${item.instituicao}</span></td>
         <td><span class="pill ${item.titular==='orlando'||item.titular==='eu'?'pill-eu':'pill-esposa'}">${item.titular==='orlando'||item.titular==='eu'?'Orlando':'Giulia'}</span></td>
-        <td class="mono">${fmtBRL(item.valor)}</td>
-        <td><button class="btn btn-danger btn-sm" onclick="removerItem('${item.id}')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-        </button></td>
+        <td class="mono">${fmtBRLDec(item.valor)}</td>
+        <td><div style="display:flex;gap:4px">
+          <button class="btn btn-sm" style="padding:5px 8px;color:var(--text2);border-color:var(--border)" onclick="editarItem('${item.id}',${item.valor})" title="Editar">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="btn btn-danger btn-sm" style="padding:5px 8px" onclick="removerItem('${item.id}')" title="Remover">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </button>
+        </div></td>
       </tr>`).join('')}</tbody>
     </table>
     <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
@@ -779,6 +776,16 @@ function adicionarItem() {
   atualizarTabLanc();
 }
 
+function editarItem(id, valorAtual) {
+  const novoValor = prompt('Novo valor para este lançamento (R$):', valorAtual.toFixed(2).replace('.',','));
+  if (novoValor === null) return;
+  const v = parseFloat(novoValor.replace(',','.'));
+  if (isNaN(v) || v < 0) { alert('Valor inválido.'); return; }
+  const s = gs();
+  const item = (s.lancamentos||[]).find(x => x.id === id);
+  if (item) { item.valor = v; ss(s); atualizarTabLanc(); }
+}
+
 function removerItem(id) {
   if (!confirm('Remover este lançamento?')) return;
   const s = gs();
@@ -788,68 +795,123 @@ function removerItem(id) {
 }
 
 /* ---- HISTÓRICO ---- */
+let _histView = 'casal'; // 'orlando' | 'giulia' | 'casal'
+let _histChart = 'total'; // 'total' | 'inst'
+
 function renderHistorico() {
   const div = document.getElementById('sec-historico');
   const meses = getMeses(), tm = totaisPorMes();
-
-  if (meses.length === 0) {
-    div.innerHTML = `<div class="empty" style="padding-top:60px">Nenhum lançamento ainda.</div>`;
-    return;
-  }
+  if (meses.length === 0) { div.innerHTML = `<div class="empty" style="padding-top:60px">Nenhum lançamento ainda.</div>`; return; }
 
   const allInst = [...new Set(getLanc().map(x=>x.instituicao))];
-  const mesesLabels = meses.map(m => { const [a,mo] = m.split('-'); return mo+'/'+a.slice(2); });
+  const mesesCasal = meses.filter(m => m >= '2025-09');
 
-  const rows = [...meses].reverse().map((m,idx,arr) => {
-    const origIdx = meses.indexOf(m);
-    const total = tm[m]?.total || 0;
-    const anterior = origIdx > 0 ? (tm[meses[origIdx-1]]?.total || 0) : null;
-    const var_ = anterior != null ? ((total-anterior)/anterior*100) : null;
-    const items = tm[m]?.items || [];
-    const eu = items.filter(x=>x.titular==='eu').reduce((a,b)=>a+(b.valor||0),0);
-    const esposa = items.filter(x=>x.titular==='esposa').reduce((a,b)=>a+(b.valor||0),0);
-    return `<tr>
-      <td style="font-weight:500;font-size:13px">${m.split('-').reverse().join('/')}</td>
-      <td class="mono">${fmtBRL(total)}</td>
-      <td class="${var_===null?'neutral':var_>=0?'positive':'negative'} mono">${var_===null?'—':fmtPct(var_)}</td>
-    </tr>`;
-  }).join('');
+  // Qual conjunto de meses usar
+  const mesesView = _histView === 'orlando' ? meses : mesesCasal;
+  const mesesLabels = mesesView.map(m => { const [a,mo] = m.split('-'); return mo+'/'+a.slice(2); });
+
+  // Montar tabela
+  function rowsFor(view) {
+    return [...mesesView].reverse().map((m, _, arr) => {
+      const origIdx = mesesView.indexOf(m);
+      const items = tm[m]?.items || [];
+      const isOrlando = x => x.titular==='orlando'||x.titular==='eu';
+      const isGiulia  = x => x.titular==='giulia'||x.titular==='esposa';
+      const total = view==='orlando' ? items.filter(isOrlando).reduce((a,b)=>a+(b.valor||0),0)
+                  : view==='giulia'  ? items.filter(isGiulia).reduce((a,b)=>a+(b.valor||0),0)
+                  : items.reduce((a,b)=>a+(b.valor||0),0);
+      const mAnt = origIdx > 0 ? mesesView[origIdx-1] : null;
+      const itemsAnt = mAnt ? (tm[mAnt]?.items||[]) : [];
+      const totalAnt = mAnt ? (view==='orlando' ? itemsAnt.filter(isOrlando).reduce((a,b)=>a+(b.valor||0),0)
+                             : view==='giulia'  ? itemsAnt.filter(isGiulia).reduce((a,b)=>a+(b.valor||0),0)
+                             : itemsAnt.reduce((a,b)=>a+(b.valor||0),0)) : null;
+      const var_ = totalAnt ? ((total-totalAnt)/totalAnt*100) : null;
+      return `<tr>
+        <td style="font-weight:500;font-size:13px">${m.split('-').reverse().join('/')}</td>
+        <td class="mono">${fmtBRLDec(total)}</td>
+        <td class="${var_===null?'neutral':var_>=0?'positive':'negative'} mono">${var_===null?'—':fmtPct(var_)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  const tabStyle = (v) => `padding:8px 14px;font-size:13px;font-weight:500;border:none;background:${_histView===v?'var(--text)':'transparent'};color:${_histView===v?'var(--bg)':'var(--text2)'};border-radius:6px;cursor:pointer;font-family:var(--font)`;
+  const chartTabStyle = (v) => `padding:6px 12px;font-size:12px;border:1px solid var(--border2);border-radius:6px;background:${_histChart===v?'var(--text)':'transparent'};color:${_histChart===v?'var(--bg)':'var(--text2)'};cursor:pointer;font-family:var(--font)`;
 
   div.innerHTML = `
     <div style="margin-top:16px"></div>
-    ${meses.length > 1 ? `
-    <div class="section-header">Evolução por instituição</div>
+    <div style="display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:4px;margin-bottom:16px">
+      <button style="${tabStyle('orlando')}" onclick="setHistView('orlando')">Orlando</button>
+      <button style="${tabStyle('giulia')}"  onclick="setHistView('giulia')">Giulia</button>
+      <button style="${tabStyle('casal')}"   onclick="setHistView('casal')">Casal</button>
+    </div>
+
+    ${mesesView.length > 1 ? `
+    <div class="section-header" style="display:flex;align-items:center;justify-content:space-between">
+      Evolução
+      <div style="display:flex;gap:6px">
+        <button style="${chartTabStyle('total')}" onclick="setHistChart('total')">Total</button>
+        <button style="${chartTabStyle('inst')}"  onclick="setHistChart('inst')">Por instituição</button>
+      </div>
+    </div>
     <div class="card">
       <div class="chart-legend" id="leg-hist"></div>
-      <div class="chart-container" style="height:200px"><canvas id="ch-hist" role="img" aria-label="Evolução por instituição"></canvas></div>
+      <div class="chart-container" style="height:210px"><canvas id="ch-hist" role="img" aria-label="Gráfico de evolução"></canvas></div>
     </div>` : ''}
+
     <div class="section-header">Resumo mensal</div>
     <div class="card" style="padding:0;overflow:hidden">
       <table>
         <thead><tr><th>Mês</th><th>Total</th><th>Variação</th></tr></thead>
-        <tbody>${rows}</tbody>
+        <tbody>${rowsFor(_histView)}</tbody>
       </table>
     </div>
   `;
 
-  setTimeout(() => {
-    destroyChart('hist');
-    if (meses.length > 1) {
-      const datasets = allInst.map((k,i) => ({
-        label:k,
-        data: meses.map(m => (tm[m]?.items||[]).filter(x=>x.instituicao===k).reduce((a,b)=>a+(b.valor||0),0)),
-        borderColor: COLORS[i%COLORS.length],
-        backgroundColor: COLORS[i%COLORS.length]+'22',
-        fill:false, tension:0.35, pointRadius:3, borderWidth:2
-      }));
-      const leg = document.getElementById('leg-hist');
-      if(leg) leg.innerHTML = allInst.map((k,i)=>`<span class="legend-item"><span class="legend-dot" style="background:${COLORS[i%COLORS.length]}"></span>${k}</span>`).join('');
-      _charts['hist'] = new Chart(document.getElementById('ch-hist'), {
-        type:'line', data:{labels:mesesLabels,datasets},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtBRLDec(c.raw)}}},scales:{y:{ticks:{callback:v=>fmtBRL(v),color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.05)'},border:{display:false}},x:{ticks:{color:'#555',font:{size:10}},grid:{display:false},border:{display:false}}}}
-      });
-    }
-  }, 60);
+  setTimeout(() => buildHistChart(mesesView, mesesLabels, allInst), 60);
+}
+
+function setHistView(v) { _histView = v; destroyChart('hist'); renderHistorico(); }
+function setHistChart(v) { _histChart = v; destroyChart('hist'); buildHistChart(
+  (_histView==='orlando' ? getMeses() : getMeses().filter(m=>m>='2025-09')),
+  (_histView==='orlando' ? getMeses() : getMeses().filter(m=>m>='2025-09')).map(m=>{const[a,mo]=m.split('-');return mo+'/'+a.slice(2);}),
+  [...new Set(getLanc().map(x=>x.instituicao))]
+); }
+
+function buildHistChart(mesesView, mesesLabels, allInst) {
+  const tm = totaisPorMes();
+  const isOrlando = x => x.titular==='orlando'||x.titular==='eu';
+  const isGiulia  = x => x.titular==='giulia'||x.titular==='esposa';
+  const filterFn  = _histView==='orlando' ? isOrlando : _histView==='giulia' ? isGiulia : ()=>true;
+
+  destroyChart('hist');
+  const leg = document.getElementById('leg-hist');
+  let datasets;
+
+  if (_histChart === 'total') {
+    const data = mesesView.map(m => (tm[m]?.items||[]).filter(filterFn).reduce((a,b)=>a+(b.valor||0),0));
+    const color = _histView==='giulia' ? '#a78bfa' : _histView==='orlando' ? '#22c55e' : '#3b82f6';
+    if (leg) leg.innerHTML = `<span class="legend-item"><span class="legend-dot" style="background:${color}"></span>${_histView==='casal'?'Casal':_histView==='orlando'?'Orlando':'Giulia'}</span>`;
+    datasets = [{ label:'Total', data, borderColor:color, backgroundColor:color+'18', fill:true, tension:0.4, pointRadius:3, borderWidth:2 }];
+  } else {
+    // filtrar inst relevantes para a view
+    const instFiltradas = _histView==='orlando'
+      ? allInst.filter(k => getLanc().some(x=>(x.titular==='orlando'||x.titular==='eu')&&x.instituicao===k))
+      : _histView==='giulia'
+      ? allInst.filter(k => getLanc().some(x=>(x.titular==='giulia'||x.titular==='esposa')&&x.instituicao===k))
+      : allInst;
+    if (leg) leg.innerHTML = instFiltradas.map((k,i)=>`<span class="legend-item"><span class="legend-dot" style="background:${COLORS[i%COLORS.length]}"></span>${k}</span>`).join('');
+    datasets = instFiltradas.map((k,i) => ({
+      label:k,
+      data: mesesView.map(m => (tm[m]?.items||[]).filter(x=>filterFn(x)&&x.instituicao===k).reduce((a,b)=>a+(b.valor||0),0)),
+      borderColor:COLORS[i%COLORS.length], backgroundColor:COLORS[i%COLORS.length]+'22',
+      fill:false, tension:0.35, pointRadius:3, borderWidth:2
+    }));
+  }
+
+  _charts['hist'] = new Chart(document.getElementById('ch-hist'), {
+    type:'line', data:{labels:mesesLabels,datasets},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtBRLDec(c.raw)}}},scales:{y:{ticks:{callback:v=>fmtBRL(v),color:'#555',font:{size:10}},grid:{color:'rgba(255,255,255,0.05)'},border:{display:false}},x:{ticks:{color:'#555',font:{size:10}},grid:{display:false},border:{display:false}}}}
+  });
 }
 
 /* ---- CONFIG ---- */
@@ -943,7 +1005,7 @@ function importarDados(inp) {
 }
 function limparDados() {
   if (!confirm('Apagar TODOS os dados permanentemente?')) return;
-  localStorage.removeItem('invest_v2');
+  localStorage.removeItem('invest_v4');
   renderConfig(); alert('Dados apagados.');
 }
 
