@@ -1157,7 +1157,9 @@ function limparDados() {
 
 async function init() {
   await loadFromCloud();
-  seedData();
+  if (!_cache || !_cache.seeded) {
+    seedData(); // só roda se a nuvem estiver vazia
+  }
   renderDashboard();
   checkAuth();
 }
