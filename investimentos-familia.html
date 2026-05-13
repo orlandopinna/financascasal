@@ -342,30 +342,23 @@ function ss(s) {
 }
 
 async function loadFromCloud() {
+  // SEMPRE busca da nuvem — cache local é só fallback offline
   try {
-    const res = await fetch(SCRIPT_URL + '?action=load');
+    const res = await fetch(SCRIPT_URL + '?action=load&t=' + Date.now());
     const text = await res.text();
     const data = JSON.parse(text);
     if (data && data.seeded) {
       _cache = data;
       localStorage.setItem('invest_v4', JSON.stringify(data));
-      return; // cloud tem dados, usa eles
+      return;
     }
-  } catch(e) {}
-  // cloud vazio ou erro — usa local
-  try {
-    const local = localStorage.getItem('invest_v4');
-    if (local) {
-      _cache = JSON.parse(local);
-      // sobe pro cloud se tiver dados locais
-      if (_cache && _cache.seeded) {
-        fetch(SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'save', data: _cache })
-        }).catch(()=>{});
-      }
-    }
-  } catch(e) {}
+  } catch(e) {
+    // offline: usa localStorage como fallback
+    try {
+      const local = localStorage.getItem('invest_v4');
+      if (local) _cache = JSON.parse(local);
+    } catch(e2) {}
+  }
 }
 
 
