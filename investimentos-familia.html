@@ -639,8 +639,6 @@ function seedData() {
   ss({ seeded: true, instituicoes: inst, lancamentos, meta: 300000 });
 }
 
-seedData();
-
 function getInst() { return gs().instituicoes || ['Nubank','XP','Inter']; }
 function getLanc() { return gs().lancamentos || []; }
 function getMeta() { return parseFloat(gs().meta) || 0; }
