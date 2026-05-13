@@ -319,10 +319,51 @@ const COLORS = ['#3b82f6','#22c55e','#f59e0b','#a78bfa','#ef4444','#06b6d4','#f9
 
 let _charts = {};
 
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6p9A-R3wkD5U49nMnpatO4uPrUwfvjGq-wiRQBxgUHps5LhJ1dd1eitd3G1eWCtVU/exec';
+let _cache = null;
+let _saving = false;
+
 function gs() {
-  try { return JSON.parse(localStorage.getItem('invest_v4') || '{}'); } catch(e) { return {}; }
+  return _cache || {};
 }
-function ss(s) { localStorage.setItem('invest_v4', JSON.stringify(s)); }
+
+function ss(s) {
+  _cache = s;
+  localStorage.setItem('invest_v4', JSON.stringify(s)); // fallback local
+  if (_saving) return;
+  _saving = true;
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'save', data: s })
+  }).catch(()=>{}).finally(()=>{ _saving = false; });
+}
+
+async function loadFromCloud() {
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=load');
+    const text = await res.text();
+    const data = JSON.parse(text);
+    if (data && data.seeded) {
+      _cache = data;
+      localStorage.setItem('invest_v4', JSON.stringify(data));
+    } else {
+      // cloud vazio, usa local
+      const local = localStorage.getItem('invest_v4');
+      if (local) {
+        _cache = JSON.parse(local);
+        // sobe pro cloud
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'save', data: _cache })
+        }).catch(()=>{});
+      }
+    }
+  } catch(e) {
+    // offline — usa cache local
+    const local = localStorage.getItem('invest_v4');
+    if (local) _cache = JSON.parse(local);
+  }
+}
 
 
 const USERS = {
@@ -360,8 +401,8 @@ function checkAuth() {
 }
 
 function seedData() {
-  const existing = gs();
-  if (existing.seeded) return;
+  const existing = _cache || {};
+  if (existing && existing.seeded) return;
 
   const inst = ['Genial','Nu Bank','Binance','C6','Grão','Cake/Metamask','Hospital','Sofisa','Mercado Bitcoin','Avenue','Marco'];
 
@@ -1111,8 +1152,13 @@ function limparDados() {
   renderConfig(); alert('Dados apagados.');
 }
 
-renderDashboard();
-checkAuth();
+async function init() {
+  await loadFromCloud();
+  seedData();
+  renderDashboard();
+  checkAuth();
+}
+init();
 </script>
 </body>
 </html>
