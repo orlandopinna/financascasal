@@ -330,12 +330,15 @@ function gs() {
 function ss(s) {
   _cache = s;
   localStorage.setItem('invest_v4', JSON.stringify(s)); // fallback local
-  if (_saving) return;
-  _saving = true;
-  fetch(SCRIPT_URL, {
-    method: 'POST',
-    body: JSON.stringify({ action: 'save', data: s })
-  }).catch(()=>{}).finally(()=>{ _saving = false; });
+  clearTimeout(ss._timer);
+  ss._timer = setTimeout(() => {
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'save', data: s })
+    }).catch(()=>{});
+  }, 800); // debounce 800ms
 }
 
 async function loadFromCloud() {
@@ -346,23 +349,23 @@ async function loadFromCloud() {
     if (data && data.seeded) {
       _cache = data;
       localStorage.setItem('invest_v4', JSON.stringify(data));
-    } else {
-      // cloud vazio, usa local
-      const local = localStorage.getItem('invest_v4');
-      if (local) {
-        _cache = JSON.parse(local);
-        // sobe pro cloud
+      return; // cloud tem dados, usa eles
+    }
+  } catch(e) {}
+  // cloud vazio ou erro — usa local
+  try {
+    const local = localStorage.getItem('invest_v4');
+    if (local) {
+      _cache = JSON.parse(local);
+      // sobe pro cloud se tiver dados locais
+      if (_cache && _cache.seeded) {
         fetch(SCRIPT_URL, {
           method: 'POST',
           body: JSON.stringify({ action: 'save', data: _cache })
         }).catch(()=>{});
       }
     }
-  } catch(e) {
-    // offline — usa cache local
-    const local = localStorage.getItem('invest_v4');
-    if (local) _cache = JSON.parse(local);
-  }
+  } catch(e) {}
 }
 
 
